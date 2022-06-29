@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
@@ -14,7 +15,12 @@ class ItemController extends Controller
      */
     public function index()
     {
-        //
+        $items = Item::paginate(5);
+
+        return response()->json([
+            'items' => $items,
+            'status' => 'success'
+        ]);
     }
 
     /**
@@ -24,7 +30,9 @@ class ItemController extends Controller
      */
     public function create()
     {
-        //
+        return response()->json([
+            'status' => 'success'
+        ]);
     }
 
     /**
@@ -35,7 +43,20 @@ class ItemController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        $item = $request->all();
+
+        if ($request->hasFile('imagen')) {
+            $item['imagen'] = $request->file('imagen')->store('images', 'public');
+        }
+
+        Item::create($item);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Item successfully stored',
+            'item' => $item
+        ]);
     }
 
     /**
@@ -46,7 +67,10 @@ class ItemController extends Controller
      */
     public function show(Item $item)
     {
-        //
+        return response()->json([
+            'item' => $item,
+            'status' => 'success'
+        ]);
     }
 
     /**
@@ -57,7 +81,10 @@ class ItemController extends Controller
      */
     public function edit(Item $item)
     {
-        //
+        return response()->json([
+            'item' => $item,
+            'status' => 'success',
+        ]);
     }
 
     /**
@@ -69,7 +96,21 @@ class ItemController extends Controller
      */
     public function update(Request $request, Item $item)
     {
-        //
+
+        $itemData = $request->all();
+
+        if ($request->hasFile('imagen')) {
+            Storage::delete('public/' . $item->imagen);
+            $itemData['imagen'] = $request->file('imagen')->store('images', 'public');
+        }
+
+        $item->update($itemData);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Item successfully updated',
+            'item' => $item
+        ]);
     }
 
     /**
@@ -80,6 +121,14 @@ class ItemController extends Controller
      */
     public function destroy(Item $item)
     {
-        //
+        $item->delete();
+
+        $items = Item::paginate(5);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Item successfully remove',
+            'items' => $items
+        ]);
     }
 }

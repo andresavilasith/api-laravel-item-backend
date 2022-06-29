@@ -21,7 +21,9 @@ class ItemControllerTest extends TestCase
     {
         $this->withoutExceptionHandling();
 
-        $response = $this->postJson('/api/item');
+        $this->default_data();
+
+        $response = $this->get('/api/item');
 
         $items = Item::paginate(5);
         $response->assertOk();
@@ -68,28 +70,31 @@ class ItemControllerTest extends TestCase
 
         $this->default_data();
 
-        $name = 'Category 1 now';
-        $description = 'New Category';
-
+        $titulo = 'Titulo 1';
+        $descripcion = 'New Titulo descripcion';
+        $precio = 10.50;
 
         $response = $this->postJson('/api/item', [
-            'name' => $name,
-            'description' => $description
+            'titulo' => $titulo,
+            'descripcion' => $descripcion,
+            'precio' => $precio
         ]);
-
 
         $response->assertOk();
 
-        $this->assertCount(8, Item::all());
+        $this->assertCount(11, Item::all());
 
         $item = Item::latest('id')->first();
 
-        $this->assertEquals($item->name, $name);
-        $this->assertEquals($item->description, $description);
+        $this->assertEquals($item->titulo, $titulo);
+        $this->assertEquals($item->descripcion, $descripcion);
+        $this->assertEquals($item->precio, $precio);
+
 
         $response->assertJsonStructure([
             'status',
-            'message'
+            'message',
+            'item'
         ])->assertStatus(200);
     }
 
@@ -97,11 +102,12 @@ class ItemControllerTest extends TestCase
     {
         $this->withoutExceptionHandling();
 
+        $this->default_data();
 
         $item = Item::first();
 
-
         $response = $this->getJson('/api/item/' . $item->id . '/edit');
+
 
         $response->assertOk();
 
@@ -116,26 +122,28 @@ class ItemControllerTest extends TestCase
 
         $item = Item::first();
 
-        $name = 'category edit';
-        $description = 'new category';
+        $titulo = 'Titulo 1 editado';
+        $descripcion = 'New Titulo descripcion editado';
+        $precio = 20.50;
 
         $response = $this->putJson('/api/item/' . $item->id, [
-            'name' => $name,
-            'description' => $description
+            'titulo' => $titulo,
+            'descripcion' => $descripcion,
+            'precio' => $precio
         ]);
-
 
 
         $response->assertOk();
 
-        $this->assertCount(7, Item::all());
+        $this->assertCount(10, Item::all());
 
         $item = $item->fresh();
 
-        $this->assertEquals($item->name, $name);
-        $this->assertEquals($item->description, $description);
+        $this->assertEquals($item->titulo, $titulo);
+        $this->assertEquals($item->descripcion, $descripcion);
+        $this->assertEquals($item->precio, $precio);
 
-        $response->assertJsonStructure(['status', 'message'])->assertStatus(200);
+        $response->assertJsonStructure(['status', 'message', 'item'])->assertStatus(200);
     }
 
     public function test_item_destroy()
@@ -148,10 +156,9 @@ class ItemControllerTest extends TestCase
 
         $response = $this->deleteJson('/api/item/' . $item->id);
 
-
         $response->assertOk();
 
-        $this->assertCount(6, Item::all());
+        $this->assertCount(9, Item::all());
 
         $response->assertJsonStructure(['status', 'message', 'items'])->assertStatus(200);
     }
